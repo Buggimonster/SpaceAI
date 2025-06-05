@@ -1,37 +1,35 @@
 import streamlit as st
+import pandas as pd
 
-st.title("SpaceAI Calculator med 5% fratræk og tillæg")
+st.title("Daglig Rentevækst Beregner")
 
-# Inputfelter til tal
-num1 = st.number_input("Indtast det første tal", format="%.2f")
-num2 = st.number_input("Indtast det andet tal", format="%.2f")
+# Input: Startbeløb i USD
+initial_amount = st.number_input("Startbeløb (USD)", min_value=0.0, format="%.2f")
 
-# Valg af operation
-operation = st.selectbox("Vælg operation", ("Addition", "Subtraktion", "Multiplikation", "Division"))
+# Input: Antal dage
+num_days = st.number_input("Antal dage", min_value=1, step=1)
 
-# Ekstra input til tillæg
-adjustment = st.number_input("Tillæg (læg dette tal til resultatet efter fradrag)", value=0.0, format="%.2f")
+# Input: Procent som daglig vækst (via slider)
+daily_percent = st.slider("Daglig procentvis vækst", min_value=0.4, max_value=5.0, step=0.1, format="%.1f") / 100
 
 # Beregn-knap
 if st.button("Beregn"):
-    result = None
+    results = []
+    amount = initial_amount
 
-    if operation == "Addition":
-        result = num1 + num2
-    elif operation == "Subtraktion":
-        result = num1 - num2
-    elif operation == "Multiplikation":
-        result = num1 * num2
-    elif operation == "Division":
-        if num2 != 0:
-            result = num1 / num2
-        else:
-            st.error("Fejl: Division med nul er ikke tilladt.")
+    for day in range(1, num_days + 1):
+        amount += amount * daily_percent
+        results.append({"Dag": day, "Beløb (USD)": round(amount, 2)})
 
-    if result is not None:
-        result_after_fee = result * 0.95  # Træk 5% fra
-        final_result = result_after_fee + adjustment  # Læg tillæg til
+    df = pd.DataFrame(results)
+    st.subheader("Udvikling pr. dag:")
+    st.dataframe(df, use_container_width=True)
 
-        st.success(f"Resultat før fradrag: {result:.2f}")
-        st.info(f"Resultat efter 5% fradrag: {result_after_fee:.2f}")
-        st.warning(f"Slutresultat efter tillæg: {final_result:.2f}")
+    # Download-knap
+    csv = df.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="Download som CSV",
+        data=csv,
+        file_name="daglig_vækst.csv",
+        mime="text/csv"
+    )
