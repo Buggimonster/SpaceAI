@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
-# Brugerdefineret CSS (uændret)
+# Brugerdefineret CSS for baggrund, tekst og knapper
 st.markdown("""
     <style>
     /* Sætter gradient-baggrunden for hovedvinduet */
@@ -22,23 +22,42 @@ st.markdown("""
     .stMetric [data-testid="stMetricValue"] {
         color: white;
     }
-    /* Knap styling */
+    
+    /* --- KNAP STYLING --- */
+    /* Styler den almindelige "Beregn"-knap */
     .stButton>button {
         border: 2px solid #C00;
         border-radius: 5px;
-        color: black !important;
-        background-color: #FF0000;
+        color: black !important; /* Sort tekst */
+        background-color: #FF0000; /* Rød baggrund */
     }
     .stButton>button:hover {
         border-color: #A00;
-        background-color: #D00000;
+        background-color: #D00000; /* Lidt mørkere rød */
         color: black !important;
     }
+
+    /* NYT: Styler "Download"-knappen, så den matcher */
+    .stDownloadButton>a {
+        border: 2px solid #C00;
+        border-radius: 5px;
+        color: black !important; /* Sort tekst */
+        background-color: #FF0000 !important; /* Rød baggrund */
+        text-decoration: none !important; /* Fjern understregning fra link */
+    }
+    .stDownloadButton>a:hover {
+        border-color: #A00;
+        background-color: #D00000 !important; /* Lidt mørkere rød */
+        color: black !important;
+    }
+
     </style>
     """, unsafe_allow_html=True)
 
 
-# Ordbog for oversættelser (uændret)
+# ==============================================================================
+# 1. ORDBOG FOR OVERSÆTTELSER
+# ==============================================================================
 translations = {
     'da': {
         "lang_selector_label": "Vælg sprog", "title": "Avanceret Investeringsberegner", "sidebar_header": "Indtast dine værdier",
@@ -179,7 +198,6 @@ if st.button(texts['calculate_button']):
     
     with st.expander(texts['expander_label']):
         st.subheader(texts['daily_results_header'])
-        # HER ER DEN RETTEDE LINJE:
         st.dataframe(
             results_df_renamed.style.format(formatter="{:,.2f}", subset=pd.IndexSlice[:, results_df_renamed.columns[1:]]),
             use_container_width=True
