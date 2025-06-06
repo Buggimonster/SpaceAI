@@ -16,7 +16,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 
-# Ordbog for oversættelser (med nye tekster)
+# Ordbog for oversættelser (med ny tekst)
 translations = {
     'da': {
         "lang_selector_label": "Vælg sprog", "title": "Avanceret Investeringsberegner", "sidebar_header": "Indtast dine værdier",
@@ -36,7 +36,8 @@ translations = {
         "graph_header": "Kapital Vækst Over Tid", "expander_label": "Vis/skjul detaljeret dag-for-dag oversigt",
         "download_button_label": "Download resultater som Excel (.xlsx)", "download_button_short_label": "Download",
         "reset_button_label": "Nulstil Indtastning", "reinvest_interval_label": "Geninvesterings-interval (dage)",
-        "package_select_label": "Primær investeringspakke" # NYT
+        "reinvest_interval_help": "Skriv 1 for at geninvestere så ofte som muligt (hver dag).", # NYT
+        "package_select_label": "Primær investeringspakke"
     },
     'en': {
         "lang_selector_label": "Select language", "title": "Advanced Investment Calculator", "sidebar_header": "Enter your values",
@@ -56,49 +57,39 @@ translations = {
         "graph_header": "Capital Growth Over Time", "expander_label": "Show/hide detailed day-by-day overview",
         "download_button_label": "Download results as Excel (.xlsx)", "download_button_short_label": "Download",
         "reset_button_label": "Reset Inputs", "reinvest_interval_label": "Reinvestment Interval (days)",
-        "package_select_label": "Primary investment package" # NEW
+        "reinvest_interval_help": "Enter 1 to reinvest as often as possible (every day).", # NEW
+        "package_select_label": "Primary investment package"
     }
 }
 
-# OPDATERET BEREGNINGSFUNKTION
+# Beregningsfunktion (uændret)
 def calculate_income(initial_capital, days, daily_rate_pct, bonus_pct, reinvest, reinvest_interval, reinvestment_unit, fixed_daily_addition, apply_fee):
     daily_rate = daily_rate_pct / 100; bonus_rate = bonus_pct / 100
     if reinvest_interval < 1: reinvest_interval = 1
-        
     total_earned_income = 0; total_fixed_additions = 0; total_fees = 0; total_bonuses = 0
     current_capital = initial_capital; reinvestment_pool = 0; daily_results = []
-
     for day in range(1, days + 1):
         base_daily_income = current_capital * daily_rate
         fee_amount = base_daily_income * 0.05 if apply_fee else 0
         bonus_amount = base_daily_income * bonus_rate
         daily_earned_income_net = base_daily_income - fee_amount + bonus_amount
-        
         total_earned_income += daily_earned_income_net; total_fees += fee_amount; total_bonuses += bonus_amount
         total_fixed_additions += fixed_daily_addition
-        
         total_added_to_pool = daily_earned_income_net + fixed_daily_addition
         reinvestment_pool += total_added_to_pool
-        
-        # NYT: Omskrevet re-investeringslogik baseret på pakker/enheder
         if reinvest and (day % reinvest_interval == 0):
-            # Tjek om puljen har nok til mindst én enhed af den valgte pakke
             if reinvestment_pool >= reinvestment_unit:
-                # Beregn hvor mange hele enheder der kan købes
                 num_units = int(reinvestment_pool / reinvestment_unit)
                 reinvest_amount = num_units * reinvestment_unit
-                
-                # Udfør geninvesteringen
-                current_capital += reinvest_amount
-                reinvestment_pool -= reinvest_amount
-        
+                if reinvest_amount > 0:
+                    current_capital += reinvest_amount
+                    reinvestment_pool -= reinvest_amount
         daily_results.append({
             "day": day, "raw_income": base_daily_income, "fee": fee_amount, "bonus": bonus_amount,
             "net_income": daily_earned_income_net, "fixed_add": fixed_daily_addition,
             "total_pool": total_added_to_pool, "reinvest_pool": reinvestment_pool,
             "final_capital": current_capital
         })
-
     return total_earned_income, total_fixed_additions, total_fees, total_bonuses, current_capital, daily_results
 
 def to_excel(df):
@@ -107,7 +98,7 @@ def to_excel(df):
     return output.getvalue()
 
 # ==============================================================================
-# SPROG OG UI SETUP
+# SPROG OG UI SETUP (uændret)
 # ==============================================================================
 if 'lang' not in st.session_state: st.session_state.lang = 'da'
 lang_options = {'Dansk': 'da', 'English': 'en'}
@@ -135,13 +126,19 @@ bonus_pct = bonus_options[bonus_choice]
 custom_bonus = st.sidebar.number_input(texts['custom_bonus'], min_value=0.0, value=0.0, step=1.0)
 if custom_bonus > 0: bonus_pct = custom_bonus
 
-# OPDATERET: Re-investerings sektion baseret på pakkevalg
+# Re-investerings sektion
 reinvest = st.sidebar.checkbox(texts['reinvest_active'], value=True)
-reinvest_interval, reinvestment_unit = 1, 50 # Standardværdier
+reinvest_interval, reinvestment_unit = 1, 50
 if reinvest:
-    reinvest_interval = st.sidebar.number_input(texts['reinvest_interval_label'], min_value=1, value=7, step=1)
+    # OPDATERET: help-parameter tilføjet her
+    reinvest_interval = st.sidebar.number_input(
+        texts['reinvest_interval_label'], 
+        min_value=1, 
+        value=7, 
+        step=1,
+        help=texts['reinvest_interval_help']
+    )
     
-    # NYT: Dropdown-menu til at vælge investeringspakke/enhed
     package_options = {
         "Pakke 1 (enheder af 50$)": 50,
         "Pakke 2 (enheder af 1000$)": 1000,
@@ -157,7 +154,6 @@ if st.sidebar.button(texts['reset_button_label']): st.rerun()
 
 # --- BEREGNING OG RESULTATER ---
 if st.button(texts['calculate_button']):
-    # OPDATERET: Sender den nye 'reinvestment_unit' med til beregningsfunktionen
     total_earned_income, total_fixed_additions, total_fees, total_bonuses, final_capital, daily_results = calculate_income(
         initial_capital, days, daily_rate_pct, bonus_pct, reinvest, reinvest_interval, reinvestment_unit, fixed_daily_addition, apply_fee)
     
