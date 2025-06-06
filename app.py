@@ -37,19 +37,23 @@ st.markdown("""
         color: black !important;
     }
 
-    /* OPDATERET: Styler "Download"-knappen mere aggressivt */
-    div[data-testid="stDownloadButton"] > a {
+    /* ALLERSIDSTE FORSØG: Styler "Download"-knappen for alle tilstande */
+    div[data-testid="stDownloadButton"] > a,
+    div[data-testid="stDownloadButton"] > a:link,
+    div[data-testid="stDownloadButton"] > a:visited {
         border: 2px solid #C00 !important;
         border-radius: 5px !important;
         color: black !important;
         background-color: #FF0000 !important;
-        text-decoration: none !important; /* Fjern understregning fra link */
-        font-weight: 600 !important; /* Gør teksten lidt fed som på en knap */
-        padding: 0.45em 0.8em !important; /* Juster padding så den ligner den anden knap */
+        text-decoration: none !important;
+        font-weight: 600 !important;
+        padding: 0.45em 0.8em !important;
         display: inline-flex !important;
         align-items: center !important;
     }
-    div[data-testid="stDownloadButton"] > a:hover {
+
+    div[data-testid="stDownloadButton"] > a:hover,
+    div[data-testid="stDownloadButton"] > a:active {
         border-color: #A00 !important;
         background-color: #D00000 !important;
         color: black !important;
