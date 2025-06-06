@@ -2,53 +2,21 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
-# Brugerdefineret CSS for baggrund, tekst og knapper
+# Brugerdefineret CSS (uændret)
 st.markdown("""
     <style>
-    /* Sætter gradient-baggrunden for hovedvinduet */
-    [data-testid="stAppViewContainer"] {
-        background: linear-gradient(to right, #0d1b2a, #415a77);
-    }
-    /* Gør headeren gennemsigtig */
-    [data-testid="stHeader"] {
-        background-color: rgba(0, 0, 0, 0);
-    }
-    /* Generel tekst- og overskriftsfarve */
-    .stApp, h1, h2, h3, h4, h5, h6, .st-emotion-cache-16idsys p {
-        color: white;
-    }
-    /* Metrics farve */
-    .stMetric [data-testid="stMetricLabel"],
-    .stMetric [data-testid="stMetricValue"] {
-        color: white;
-    }
-    
-    /* --- KNAP STYLING --- */
-    /* Styler den almindelige "Beregn"-knap */
-    .stButton>button {
-        border: 2px solid #C00;
-        border-radius: 5px;
-        color: black !important;
-        background-color: #FF0000;
-    }
-    .stButton>button:hover {
-        border-color: #A00;
-        background-color: #D00000;
-        color: black !important;
-    }
-
-    /* Simpel regel for at gøre teksten på download-knappen sort */
-    div[data-testid="stDownloadButton"] a {
-        color: black !important;
-    }
-
+    [data-testid="stAppViewContainer"] { background: linear-gradient(to right, #0d1b2a, #415a77); }
+    [data-testid="stHeader"] { background-color: rgba(0, 0, 0, 0); }
+    .stApp, h1, h2, h3, h4, h5, h6, .st-emotion-cache-16idsys p { color: white; }
+    .stMetric [data-testid="stMetricLabel"], .stMetric [data-testid="stMetricValue"] { color: white; }
+    .stButton>button { border: 2px solid #C00; border-radius: 5px; color: black !important; background-color: #FF0000; }
+    .stButton>button:hover { border-color: #A00; background-color: #D00000; color: black !important; }
+    div[data-testid="stDownloadButton"] a { color: black !important; }
     </style>
     """, unsafe_allow_html=True)
 
 
-# ==============================================================================
-# 1. ORDBOG FOR OVERSÆTTELSER
-# ==============================================================================
+# Ordbog for oversættelser (med nye tekster)
 translations = {
     'da': {
         "lang_selector_label": "Vælg sprog", "title": "Avanceret Investeringsberegner", "sidebar_header": "Indtast dine værdier",
@@ -66,9 +34,9 @@ translations = {
         "col_net_income": "Netto Afkast ($)", "col_fixed_add": "Fast Tillæg ($)", "col_total_pool": "Total til Pulje ($)",
         "col_reinvest_pool": "Reinvest Pulje ($)", "col_final_capital": "Kapital v/Dagens Slut ($)",
         "graph_header": "Kapital Vækst Over Tid", "expander_label": "Vis/skjul detaljeret dag-for-dag oversigt",
-        "download_button_label": "Download resultater som Excel (.xlsx)",
-        "download_button_short_label": "Download",
-        "reset_button_label": "Nulstil Indtastning"
+        "download_button_label": "Download resultater som Excel (.xlsx)", "download_button_short_label": "Download",
+        "reset_button_label": "Nulstil Indtastning",
+        "reinvest_interval_label": "Geninvesterings-interval (dage)" # NYT
     },
     'en': {
         "lang_selector_label": "Select language", "title": "Advanced Investment Calculator", "sidebar_header": "Enter your values",
@@ -86,52 +54,65 @@ translations = {
         "col_net_income": "Net Return ($)", "col_fixed_add": "Fixed Add. ($)", "col_total_pool": "Total to Pool ($)",
         "col_reinvest_pool": "Reinvest Pool ($)", "col_final_capital": "Capital at Day End ($)",
         "graph_header": "Capital Growth Over Time", "expander_label": "Show/hide detailed day-by-day overview",
-        "download_button_label": "Download results as Excel (.xlsx)",
-        "download_button_short_label": "Download",
-        "reset_button_label": "Reset Inputs"
+        "download_button_label": "Download results as Excel (.xlsx)", "download_button_short_label": "Download",
+        "reset_button_label": "Reset Inputs",
+        "reinvest_interval_label": "Reinvestment Interval (days)" # NEW
     }
 }
 
-# Beregningsfunktion (uændret)
-def calculate_income(initial_capital, days, daily_rate_pct, bonus_pct, reinvest, fixed_daily_addition, apply_fee):
+# OPDATERET BEREGNINGSFUNKTION
+def calculate_income(initial_capital, days, daily_rate_pct, bonus_pct, reinvest, reinvest_interval, fixed_daily_addition, apply_fee):
     daily_rate = daily_rate_pct / 100
     bonus_rate = bonus_pct / 100
+    
+    # Sikrer at intervallet er mindst 1 for at undgå fejl
+    if reinvest_interval < 1:
+        reinvest_interval = 1
+        
     total_earned_income = 0; total_fixed_additions = 0; total_fees = 0; total_bonuses = 0
     current_capital = initial_capital; reinvestment_pool = 0; daily_results = []
+
     for day in range(1, days + 1):
         base_daily_income = current_capital * daily_rate
         fee_amount = base_daily_income * 0.05 if apply_fee else 0
         bonus_amount = base_daily_income * bonus_rate
         daily_earned_income_net = base_daily_income - fee_amount + bonus_amount
+        
         total_earned_income += daily_earned_income_net; total_fees += fee_amount; total_bonuses += bonus_amount
         total_fixed_additions += fixed_daily_addition
+        
         total_added_to_pool = daily_earned_income_net + fixed_daily_addition
-        if reinvest:
-            reinvestment_pool += total_added_to_pool
+        reinvestment_pool += total_added_to_pool # Puljen fyldes op hver dag
+        
+        # NYT: Tjekker kun for geninvestering på de angivne interval-dage
+        if reinvest and (day % reinvest_interval == 0):
             if reinvestment_pool >= 50:
-                num_reinvestments = int(reinvestment_pool / 50); reinvest_amount = num_reinvestments * 50
-                current_capital += reinvest_amount; reinvestment_pool -= reinvest_amount
+                # Beregn hvor mange $50-enheder der kan geninvesteres
+                num_reinvestments = int(reinvestment_pool / 50)
+                reinvest_amount = num_reinvestments * 50
+                
+                # Udfør geninvesteringen
+                current_capital += reinvest_amount
+                reinvestment_pool -= reinvest_amount
+        
         daily_results.append({
             "day": day, "raw_income": base_daily_income, "fee": fee_amount, "bonus": bonus_amount,
             "net_income": daily_earned_income_net, "fixed_add": fixed_daily_addition,
             "total_pool": total_added_to_pool, "reinvest_pool": reinvestment_pool,
             "final_capital": current_capital
         })
+
     return total_earned_income, total_fixed_additions, total_fees, total_bonuses, current_capital, daily_results
 
-# Funktion til at konvertere DataFrame til Excel i hukommelsen (uændret)
 def to_excel(df):
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df.to_excel(writer, index=False, sheet_name='Results')
-    processed_data = output.getvalue()
-    return processed_data
+    output = BytesIO();
+    with pd.ExcelWriter(output, engine='openpyxl') as writer: df.to_excel(writer, index=False, sheet_name='Results')
+    return output.getvalue()
 
 # ==============================================================================
-# SPROG OG UI SETUP (uændret)
+# SPROG OG UI SETUP
 # ==============================================================================
-if 'lang' not in st.session_state:
-    st.session_state.lang = 'da'
+if 'lang' not in st.session_state: st.session_state.lang = 'da'
 lang_options = {'Dansk': 'da', 'English': 'en'}
 
 # --- SIDEBAR SETUP ---
@@ -157,16 +138,23 @@ bonus_choice = st.sidebar.radio(texts['bonus_level'], list(bonus_options.keys())
 bonus_pct = bonus_options[bonus_choice]
 custom_bonus = st.sidebar.number_input(texts['custom_bonus'], min_value=0.0, value=0.0, step=1.0)
 if custom_bonus > 0: bonus_pct = custom_bonus
+
+# OPDATERET: Re-investerings sektion
 reinvest = st.sidebar.checkbox(texts['reinvest_active'], value=True)
+reinvest_interval = 1 # Standardværdi
+if reinvest:
+    # NYT: Input-felt for interval vises kun, når 'reinvest' er aktiv
+    reinvest_interval = st.sidebar.number_input(texts['reinvest_interval_label'], min_value=1, value=7, step=1)
+
 apply_fee = st.sidebar.checkbox(texts['apply_fee'], value=True)
 
-if st.sidebar.button(texts['reset_button_label']):
-    st.rerun()
+if st.sidebar.button(texts['reset_button_label']): st.rerun()
 
 # --- BEREGNING OG RESULTATER ---
 if st.button(texts['calculate_button']):
+    # OPDATERET: Sender det nye interval med til beregningsfunktionen
     total_earned_income, total_fixed_additions, total_fees, total_bonuses, final_capital, daily_results = calculate_income(
-        initial_capital, days, daily_rate_pct, bonus_pct, reinvest, fixed_daily_addition, apply_fee)
+        initial_capital, days, daily_rate_pct, bonus_pct, reinvest, reinvest_interval, fixed_daily_addition, apply_fee)
     
     results_df = pd.DataFrame(daily_results)
     results_df_renamed = results_df.rename(columns={
@@ -179,7 +167,6 @@ if st.button(texts['calculate_button']):
     
     c1, c2 = st.columns(2); c1.metric(texts['total_net_income'], f"${total_earned_income:,.2f}", help=texts['total_net_income_help']); c2.metric(texts['final_capital'], f"${final_capital:,.2f}", help=texts['final_capital_help'])
     c1, c2, c3 = st.columns(3); c1.metric(texts['total_fixed_additions'], f"${total_fixed_additions:,.2f}", help=texts['total_fixed_additions_help']); c2.metric(texts['total_bonus'], f"${total_bonuses:,.2f}", help=texts['total_bonus_help']); c3.metric(texts['total_fee'], f"${total_fees:,.2f}", help=texts['total_fee_help'])
-    
     st.divider()
 
     st.subheader(texts['graph_header'])
@@ -187,27 +174,16 @@ if st.button(texts['calculate_button']):
     st.line_chart(chart_data['final_capital'])
 
     excel_data = to_excel(results_df_renamed)
-    
     st.divider()
 
-    # OPDATERET: Download-knap og label er nu justeret
-    col1, col2 = st.columns([3, 1]) # Giver 3/4 af pladsen til teksten og 1/4 til knappen
-    with col1:
-        # Teksten højre-justeres, så den rykker tæt på knappen
+    dl_col1, dl_col2 = st.columns([3, 1])
+    with dl_col1:
         st.markdown(f"<p style='text-align: right; color: white; padding-top: 1em;'>{texts['download_button_label']}</p>", unsafe_allow_html=True)
-    with col2:
-        st.download_button(
-            label=texts['download_button_short_label'],
-            data=excel_data,
-            file_name='investment_results.xlsx',
-            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
+    with dl_col2:
+        st.download_button(label=texts['download_button_short_label'], data=excel_data, file_name='investment_results.xlsx', mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
     st.divider()
     
     with st.expander(texts['expander_label']):
         st.subheader(texts['daily_results_header'])
-        st.dataframe(
-            results_df_renamed.style.format(formatter="{:,.2f}", subset=pd.IndexSlice[:, results_df_renamed.columns[1:]]),
-            use_container_width=True
-        )
+        st.dataframe(results_df_renamed.style.format(formatter="{:,.2f}", subset=pd.IndexSlice[:, results_df_renamed.columns[1:]]), use_container_width=True)
