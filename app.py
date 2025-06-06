@@ -132,34 +132,32 @@ def calculate_income(initial_capital, days, daily_rate_pct, bonus_pct, reinvest,
 # SPROG OG UI SETUP
 # ==============================================================================
 
-# Sæt et standardsprog, hvis intet er valgt i sessionen
 if 'lang' not in st.session_state:
     st.session_state.lang = 'da'
 
-# Definer sprog til dropdown-menuen
 lang_options = {'Dansk': 'da', 'English': 'en'}
 
-# --- RÆKKEFØLGEN ER RETTET HER ---
-
-# 1. Opret sprogvælgeren FØRST, så vi ved hvilket sprog der skal bruges
+# --- SIDEBAR SETUP ---
 selected_lang_name = st.sidebar.selectbox(
     label="Vælg sprog / Select language",
     options=lang_options.keys(),
     index=list(lang_options.values()).index(st.session_state.lang)
 )
 
-# 2. Opdater sproget i session state og hent den korrekte ordbog
 st.session_state.lang = lang_options[selected_lang_name]
 texts = translations[st.session_state.lang]
 
-# 3. Nu kan vi bygge resten af UI'en med de korrekte tekster
+# --- HOVEDSIDE SETUP ---
+
+# NYT: Logo er flyttet fra sidebar til toppen af hovedsiden og centreret
+logo_url = "https://raw.githubusercontent.com/Buggimonster/SpaceAI/591366f7037c4b66479ce01fac236b4053d01c45/logo.png"
+col1, col2, col3 = st.columns([1,2,1])
+with col2:
+    st.image(logo_url)
+
 st.title(texts['title'])
 
-# Indsæt logo
-logo_url = "https://raw.githubusercontent.com/Buggimonster/SpaceAI/591366f7037c4b66479ce01fac236b4053d01c45/logo.png"
-st.sidebar.image(logo_url)
-
-# Fortsæt med resten af sidebaren
+# --- SIDEBAR FORTSÆTTELSE ---
 st.sidebar.header(texts['sidebar_header'])
 initial_capital = st.sidebar.number_input(texts['initial_capital'], min_value=0.0, value=1000.0, step=100.0)
 days = st.sidebar.number_input(texts['days'], min_value=1, value=30, step=1)
@@ -179,6 +177,7 @@ if custom_bonus > 0:
 reinvest = st.sidebar.checkbox(texts['reinvest_active'], value=True)
 apply_fee = st.sidebar.checkbox(texts['apply_fee'], value=False)
 
+# --- BEREGNING OG RESULTATER (på hovedsiden) ---
 if st.button(texts['calculate_button']):
     total_earned_income, total_fixed_additions, total_fees, total_bonuses, final_capital, daily_results = calculate_income(
         initial_capital, days, daily_rate_pct, bonus_pct, reinvest, fixed_daily_addition, apply_fee
@@ -200,7 +199,6 @@ if st.button(texts['calculate_button']):
     st.subheader(texts['daily_results_header'])
     results_df = pd.DataFrame(daily_results)
     
-    # Omdøb kolonner baseret på valgt sprog
     results_df = results_df.rename(columns={
         "day": texts['col_day'], "raw_income": texts['col_raw_income'], "fee": texts['col_fee'],
         "bonus": texts['col_bonus'], "net_income": texts['col_net_income'], "fixed_add": texts['col_fixed_add'],
