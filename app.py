@@ -35,8 +35,8 @@ translations = {
         "col_reinvest_pool": "Reinvest Pulje ($)", "col_final_capital": "Kapital v/Dagens Slut ($)",
         "graph_header": "Kapital Vækst Over Tid", "expander_label": "Vis/skjul detaljeret dag-for-dag oversigt",
         "download_button_label": "Download resultater som Excel (.xlsx)", "download_button_short_label": "Download",
-        "reset_button_label": "Nulstil Indtastning",
-        "reinvest_interval_label": "Geninvesterings-interval (dage)" # NYT
+        "reset_button_label": "Nulstil Indtastning", "reinvest_interval_label": "Geninvesterings-interval (dage)",
+        "package_select_label": "Primær investeringspakke" # NYT
     },
     'en': {
         "lang_selector_label": "Select language", "title": "Advanced Investment Calculator", "sidebar_header": "Enter your values",
@@ -55,19 +55,15 @@ translations = {
         "col_reinvest_pool": "Reinvest Pool ($)", "col_final_capital": "Capital at Day End ($)",
         "graph_header": "Capital Growth Over Time", "expander_label": "Show/hide detailed day-by-day overview",
         "download_button_label": "Download results as Excel (.xlsx)", "download_button_short_label": "Download",
-        "reset_button_label": "Reset Inputs",
-        "reinvest_interval_label": "Reinvestment Interval (days)" # NEW
+        "reset_button_label": "Reset Inputs", "reinvest_interval_label": "Reinvestment Interval (days)",
+        "package_select_label": "Primary investment package" # NEW
     }
 }
 
 # OPDATERET BEREGNINGSFUNKTION
-def calculate_income(initial_capital, days, daily_rate_pct, bonus_pct, reinvest, reinvest_interval, fixed_daily_addition, apply_fee):
-    daily_rate = daily_rate_pct / 100
-    bonus_rate = bonus_pct / 100
-    
-    # Sikrer at intervallet er mindst 1 for at undgå fejl
-    if reinvest_interval < 1:
-        reinvest_interval = 1
+def calculate_income(initial_capital, days, daily_rate_pct, bonus_pct, reinvest, reinvest_interval, reinvestment_unit, fixed_daily_addition, apply_fee):
+    daily_rate = daily_rate_pct / 100; bonus_rate = bonus_pct / 100
+    if reinvest_interval < 1: reinvest_interval = 1
         
     total_earned_income = 0; total_fixed_additions = 0; total_fees = 0; total_bonuses = 0
     current_capital = initial_capital; reinvestment_pool = 0; daily_results = []
@@ -82,14 +78,15 @@ def calculate_income(initial_capital, days, daily_rate_pct, bonus_pct, reinvest,
         total_fixed_additions += fixed_daily_addition
         
         total_added_to_pool = daily_earned_income_net + fixed_daily_addition
-        reinvestment_pool += total_added_to_pool # Puljen fyldes op hver dag
+        reinvestment_pool += total_added_to_pool
         
-        # NYT: Tjekker kun for geninvestering på de angivne interval-dage
+        # NYT: Omskrevet re-investeringslogik baseret på pakker/enheder
         if reinvest and (day % reinvest_interval == 0):
-            if reinvestment_pool >= 50:
-                # Beregn hvor mange $50-enheder der kan geninvesteres
-                num_reinvestments = int(reinvestment_pool / 50)
-                reinvest_amount = num_reinvestments * 50
+            # Tjek om puljen har nok til mindst én enhed af den valgte pakke
+            if reinvestment_pool >= reinvestment_unit:
+                # Beregn hvor mange hele enheder der kan købes
+                num_units = int(reinvestment_pool / reinvestment_unit)
+                reinvest_amount = num_units * reinvestment_unit
                 
                 # Udfør geninvesteringen
                 current_capital += reinvest_amount
@@ -115,7 +112,6 @@ def to_excel(df):
 if 'lang' not in st.session_state: st.session_state.lang = 'da'
 lang_options = {'Dansk': 'da', 'English': 'en'}
 
-# --- SIDEBAR SETUP ---
 selected_lang_name = st.sidebar.selectbox(label="Vælg sprog / Select language", options=lang_options.keys(), index=list(lang_options.values()).index(st.session_state.lang))
 st.session_state.lang = lang_options[selected_lang_name]
 texts = translations[st.session_state.lang]
@@ -126,7 +122,7 @@ c1, c2, c3 = st.columns([1,2,1]);
 with c2: st.image(logo_url)
 st.title(texts['title'])
 
-# --- SIDEBAR FORTSÆTTELSE ---
+# --- SIDEBAR SETUP ---
 st.sidebar.header(texts['sidebar_header'])
 initial_capital = st.sidebar.number_input(texts['initial_capital'], min_value=0.0, value=1000.0, step=100.0)
 days = st.sidebar.number_input(texts['days'], min_value=1, value=30, step=1)
@@ -139,12 +135,21 @@ bonus_pct = bonus_options[bonus_choice]
 custom_bonus = st.sidebar.number_input(texts['custom_bonus'], min_value=0.0, value=0.0, step=1.0)
 if custom_bonus > 0: bonus_pct = custom_bonus
 
-# OPDATERET: Re-investerings sektion
+# OPDATERET: Re-investerings sektion baseret på pakkevalg
 reinvest = st.sidebar.checkbox(texts['reinvest_active'], value=True)
-reinvest_interval = 1 # Standardværdi
+reinvest_interval, reinvestment_unit = 1, 50 # Standardværdier
 if reinvest:
-    # NYT: Input-felt for interval vises kun, når 'reinvest' er aktiv
     reinvest_interval = st.sidebar.number_input(texts['reinvest_interval_label'], min_value=1, value=7, step=1)
+    
+    # NYT: Dropdown-menu til at vælge investeringspakke/enhed
+    package_options = {
+        "Pakke 1 (enheder af 50$)": 50,
+        "Pakke 2 (enheder af 1000$)": 1000,
+        "Pakke 3 (enheder af 10.000$)": 10000,
+        "Pakke 4 (enheder af 100.000$)": 100000
+    }
+    package_choice = st.sidebar.selectbox(texts['package_select_label'], options=package_options.keys())
+    reinvestment_unit = package_options[package_choice]
 
 apply_fee = st.sidebar.checkbox(texts['apply_fee'], value=True)
 
@@ -152,9 +157,9 @@ if st.sidebar.button(texts['reset_button_label']): st.rerun()
 
 # --- BEREGNING OG RESULTATER ---
 if st.button(texts['calculate_button']):
-    # OPDATERET: Sender det nye interval med til beregningsfunktionen
+    # OPDATERET: Sender den nye 'reinvestment_unit' med til beregningsfunktionen
     total_earned_income, total_fixed_additions, total_fees, total_bonuses, final_capital, daily_results = calculate_income(
-        initial_capital, days, daily_rate_pct, bonus_pct, reinvest, reinvest_interval, fixed_daily_addition, apply_fee)
+        initial_capital, days, daily_rate_pct, bonus_pct, reinvest, reinvest_interval, reinvestment_unit, fixed_daily_addition, apply_fee)
     
     results_df = pd.DataFrame(daily_results)
     results_df_renamed = results_df.rename(columns={
@@ -164,7 +169,6 @@ if st.button(texts['calculate_button']):
         "final_capital": texts['col_final_capital']})
     
     st.header(texts['results_header'])
-    
     c1, c2 = st.columns(2); c1.metric(texts['total_net_income'], f"${total_earned_income:,.2f}", help=texts['total_net_income_help']); c2.metric(texts['final_capital'], f"${final_capital:,.2f}", help=texts['final_capital_help'])
     c1, c2, c3 = st.columns(3); c1.metric(texts['total_fixed_additions'], f"${total_fixed_additions:,.2f}", help=texts['total_fixed_additions_help']); c2.metric(texts['total_bonus'], f"${total_bonuses:,.2f}", help=texts['total_bonus_help']); c3.metric(texts['total_fee'], f"${total_fees:,.2f}", help=texts['total_fee_help'])
     st.divider()
@@ -177,10 +181,8 @@ if st.button(texts['calculate_button']):
     st.divider()
 
     dl_col1, dl_col2 = st.columns([3, 1])
-    with dl_col1:
-        st.markdown(f"<p style='text-align: right; color: white; padding-top: 1em;'>{texts['download_button_label']}</p>", unsafe_allow_html=True)
-    with dl_col2:
-        st.download_button(label=texts['download_button_short_label'], data=excel_data, file_name='investment_results.xlsx', mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    with dl_col1: st.markdown(f"<p style='text-align: right; color: white; padding-top: 1em;'>{texts['download_button_label']}</p>", unsafe_allow_html=True)
+    with dl_col2: st.download_button(label=texts['download_button_short_label'], data=excel_data, file_name='investment_results.xlsx', mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
     st.divider()
     
