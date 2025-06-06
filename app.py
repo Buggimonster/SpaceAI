@@ -2,21 +2,53 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
-# Brugerdefineret CSS (uændret)
+# Brugerdefineret CSS for baggrund, tekst og knapper
 st.markdown("""
     <style>
-    [data-testid="stAppViewContainer"] { background: linear-gradient(to right, #0d1b2a, #415a77); }
-    [data-testid="stHeader"] { background-color: rgba(0, 0, 0, 0); }
-    .stApp, h1, h2, h3, h4, h5, h6, .st-emotion-cache-16idsys p { color: white; }
-    .stMetric [data-testid="stMetricLabel"], .stMetric [data-testid="stMetricValue"] { color: white; }
-    .stButton>button { border: 2px solid #C00; border-radius: 5px; color: black !important; background-color: #FF0000; }
-    .stButton>button:hover { border-color: #A00; background-color: #D00000; color: black !important; }
-    div[data-testid="stDownloadButton"] a { color: black !important; }
+    /* Sætter gradient-baggrunden for hovedvinduet */
+    [data-testid="stAppViewContainer"] {
+        background: linear-gradient(to right, #0d1b2a, #415a77);
+    }
+    /* Gør headeren gennemsigtig */
+    [data-testid="stHeader"] {
+        background-color: rgba(0, 0, 0, 0);
+    }
+    /* Generel tekst- og overskriftsfarve */
+    .stApp, h1, h2, h3, h4, h5, h6, .st-emotion-cache-16idsys p {
+        color: white;
+    }
+    /* Metrics farve */
+    .stMetric [data-testid="stMetricLabel"],
+    .stMetric [data-testid="stMetricValue"] {
+        color: white;
+    }
+    
+    /* --- KNAP STYLING --- */
+    /* Styler den almindelige "Beregn"-knap */
+    .stButton>button {
+        border: 2px solid #C00;
+        border-radius: 5px;
+        color: black !important;
+        background-color: #FF0000;
+    }
+    .stButton>button:hover {
+        border-color: #A00;
+        background-color: #D00000;
+        color: black !important;
+    }
+
+    /* Simpel regel for at gøre teksten på download-knappen sort */
+    div[data-testid="stDownloadButton"] a {
+        color: black !important;
+    }
+
     </style>
     """, unsafe_allow_html=True)
 
 
-# Ordbog for oversættelser (med ny tekst)
+# ==============================================================================
+# 1. ORDBOG FOR OVERSÆTTELSER
+# ==============================================================================
 translations = {
     'da': {
         "lang_selector_label": "Vælg sprog", "title": "Avanceret Investeringsberegner", "sidebar_header": "Indtast dine værdier",
@@ -36,7 +68,7 @@ translations = {
         "graph_header": "Kapital Vækst Over Tid", "expander_label": "Vis/skjul detaljeret dag-for-dag oversigt",
         "download_button_label": "Download resultater som Excel (.xlsx)", "download_button_short_label": "Download",
         "reset_button_label": "Nulstil Indtastning", "reinvest_interval_label": "Geninvesterings-interval (dage)",
-        "reinvest_interval_help": "Skriv 1 for at geninvestere så ofte som muligt (hver dag).", # NYT
+        "reinvest_interval_help": "Skriv 1 for at geninvestere så ofte som muligt (hver dag).",
         "package_select_label": "Primær investeringspakke"
     },
     'en': {
@@ -57,7 +89,7 @@ translations = {
         "graph_header": "Capital Growth Over Time", "expander_label": "Show/hide detailed day-by-day overview",
         "download_button_label": "Download results as Excel (.xlsx)", "download_button_short_label": "Download",
         "reset_button_label": "Reset Inputs", "reinvest_interval_label": "Reinvestment Interval (days)",
-        "reinvest_interval_help": "Enter 1 to reinvest as often as possible (every day).", # NEW
+        "reinvest_interval_help": "Enter 1 to reinvest as often as possible (every day).",
         "package_select_label": "Primary investment package"
     }
 }
@@ -92,6 +124,7 @@ def calculate_income(initial_capital, days, daily_rate_pct, bonus_pct, reinvest,
         })
     return total_earned_income, total_fixed_additions, total_fees, total_bonuses, current_capital, daily_results
 
+# Funktion til at konvertere DataFrame til Excel i hukommelsen (uændret)
 def to_excel(df):
     output = BytesIO();
     with pd.ExcelWriter(output, engine='openpyxl') as writer: df.to_excel(writer, index=False, sheet_name='Results')
@@ -110,7 +143,16 @@ texts = translations[st.session_state.lang]
 # --- HOVEDSIDE SETUP ---
 logo_url = "https://raw.githubusercontent.com/Buggimonster/SpaceAI/591366f7037c4b66479ce01fac236b4053d01c45/logo.png"
 c1, c2, c3 = st.columns([1,2,1]);
-with c2: st.image(logo_url)
+with c2:
+    st.image(logo_url)
+    
+    # NYT: Credit-tekst indsat her, under logoet i den midterste kolonne
+    credit_text = "Created by Buggi - Credit go to fisatecs OG design which lead to this enhanced version"
+    st.markdown(
+        f'<p style="text-align: center; color: #FF4444; font-style: italic; font-size: 0.85em;">{credit_text}</p>',
+        unsafe_allow_html=True
+    )
+
 st.title(texts['title'])
 
 # --- SIDEBAR SETUP ---
@@ -130,15 +172,7 @@ if custom_bonus > 0: bonus_pct = custom_bonus
 reinvest = st.sidebar.checkbox(texts['reinvest_active'], value=True)
 reinvest_interval, reinvestment_unit = 1, 50
 if reinvest:
-    # OPDATERET: help-parameter tilføjet her
-    reinvest_interval = st.sidebar.number_input(
-        texts['reinvest_interval_label'], 
-        min_value=1, 
-        value=7, 
-        step=1,
-        help=texts['reinvest_interval_help']
-    )
-    
+    reinvest_interval = st.sidebar.number_input(texts['reinvest_interval_label'], min_value=1, value=7, step=1, help=texts['reinvest_interval_help'])
     package_options = {
         "Pakke 1 (enheder af 50$)": 50,
         "Pakke 2 (enheder af 1000$)": 1000,
