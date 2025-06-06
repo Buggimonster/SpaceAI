@@ -28,27 +28,32 @@ st.markdown("""
     .stButton>button {
         border: 2px solid #C00;
         border-radius: 5px;
-        color: black !important; /* Sort tekst */
-        background-color: #FF0000; /* Rød baggrund */
+        color: black !important;
+        background-color: #FF0000;
     }
     .stButton>button:hover {
         border-color: #A00;
-        background-color: #D00000; /* Lidt mørkere rød */
+        background-color: #D00000;
         color: black !important;
     }
 
-    /* NYT: Styler "Download"-knappen, så den matcher */
-    .stDownloadButton>a {
-        border: 2px solid #C00;
-        border-radius: 5px;
-        color: black !important; /* Sort tekst */
-        background-color: #FF0000 !important; /* Rød baggrund */
-        text-decoration: none !important; /* Fjern understregning fra link */
-    }
-    .stDownloadButton>a:hover {
-        border-color: #A00;
-        background-color: #D00000 !important; /* Lidt mørkere rød */
+    /* OPDATERET: Styler "Download"-knappen mere aggressivt */
+    div[data-testid="stDownloadButton"] > a {
+        border: 2px solid #C00 !important;
+        border-radius: 5px !important;
         color: black !important;
+        background-color: #FF0000 !important;
+        text-decoration: none !important; /* Fjern understregning fra link */
+        font-weight: 600 !important; /* Gør teksten lidt fed som på en knap */
+        padding: 0.45em 0.8em !important; /* Juster padding så den ligner den anden knap */
+        display: inline-flex !important;
+        align-items: center !important;
+    }
+    div[data-testid="stDownloadButton"] > a:hover {
+        border-color: #A00 !important;
+        background-color: #D00000 !important;
+        color: black !important;
+        text-decoration: none !important;
     }
 
     </style>
