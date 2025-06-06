@@ -1,133 +1,210 @@
 import streamlit as st
 import pandas as pd
 
+# ==============================================================================
+# 1. ORDBOG FOR OVERSÆTTELSER
+# For at tilføje et nyt sprog, kopier 'en'-blokken, indsæt den med en ny
+# sprogkode (f.eks. 'de' for tysk), og oversæt alle teksterne.
+# ==============================================================================
+translations = {
+    'da': {
+        # Generelt & Sidebar
+        "lang_selector_label": "Vælg sprog",
+        "title": "Avanceret Investeringsberegner",
+        "sidebar_header": "Indtast dine værdier",
+        "initial_capital": "Startkapital ($)",
+        "days": "Antal dage (d)",
+        "daily_rate_pct": "Gennemsnitlig daglig indkomst (%)",
+        "fixed_daily_addition": "Dagligt fast tillæg ($)",
+        "fixed_daily_addition_help": "Et fast beløb, der lægges i geninvesteringspuljen hver dag.",
+        "bonus_level": "Bonusniveau",
+        "custom_bonus": "Eller indtast brugerdefineret bonus (%)",
+        "reinvest_active": "Geninvestering aktiv?",
+        "apply_fee": "Fratræk 5% gebyr (før bonus)",
+        "calculate_button": "Beregn",
+        # Resultater
+        "results_header": "Resultat Oversigt",
+        "total_net_income": "Samlet Netto Afkast",
+        "total_net_income_help": "Den totale profit efter gebyrer og bonusser er medregnet.",
+        "final_capital": "Endelig Kapital",
+        "final_capital_help": "Din startkapital plus alle geninvesteringer.",
+        "total_fixed_additions": "Samlede Faste Tillæg",
+        "total_fixed_additions_help": "Den totale mængde penge du selv har tilføjet.",
+        "total_bonus": "Samlet Bonus",
+        "total_bonus_help": "Den samlede værdi af din bonus.",
+        "total_fee": "Samlet Gebyr (5%)",
+        "total_fee_help": "Det samlede beløb fratrukket i gebyr.",
+        # Tabel
+        "daily_results_header": "Detaljeret Daglig Oversigt",
+        "col_day": "Dag",
+        "col_raw_income": "Rå-afkast ($)",
+        "col_fee": "Gebyr (5%) ($)",
+        "col_bonus": "Bonus ($)",
+        "col_net_income": "Netto Afkast ($)",
+        "col_fixed_add": "Fast Tillæg ($)",
+        "col_total_pool": "Total til Pulje ($)",
+        "col_reinvest_pool": "Reinvest Pulje ($)",
+        "col_final_capital": "Kapital v/Dagens Slut ($)"
+    },
+    'en': {
+        # General & Sidebar
+        "lang_selector_label": "Select language",
+        "title": "Advanced Investment Calculator",
+        "sidebar_header": "Enter your values",
+        "initial_capital": "Initial Capital ($)",
+        "days": "Number of Days (d)",
+        "daily_rate_pct": "Average Daily Income (%)",
+        "fixed_daily_addition": "Fixed Daily Addition ($)",
+        "fixed_daily_addition_help": "A fixed amount added to the reinvestment pool each day.",
+        "bonus_level": "Bonus Level",
+        "custom_bonus": "Or enter custom bonus (%)",
+        "reinvest_active": "Reinvestment active?",
+        "apply_fee": "Deduct 5% fee (before bonus)",
+        "calculate_button": "Calculate",
+        # Results
+        "results_header": "Result Summary",
+        "total_net_income": "Total Net Return",
+        "total_net_income_help": "The total profit after all fees and bonuses are included.",
+        "final_capital": "Final Capital",
+        "final_capital_help": "Your initial capital plus all reinvestments.",
+        "total_fixed_additions": "Total Fixed Additions",
+        "total_fixed_additions_help": "The total amount of money you have added yourself.",
+        "total_bonus": "Total Bonus",
+        "total_bonus_help": "The total value of your bonus.",
+        "total_fee": "Total Fee (5%)",
+        "total_fee_help": "The total amount deducted as a fee.",
+        # Table
+        "daily_results_header": "Detailed Daily Overview",
+        "col_day": "Day",
+        "col_raw_income": "Raw Return ($)",
+        "col_fee": "Fee (5%) ($)",
+        "col_bonus": "Bonus ($)",
+        "col_net_income": "Net Return ($)",
+        "col_fixed_add": "Fixed Add. ($)",
+        "col_total_pool": "Total to Pool ($)",
+        "col_reinvest_pool": "Reinvest Pool ($)",
+        "col_final_capital": "Capital at Day End ($)"
+    }
+}
+
+# Beregningsfunktionen er uændret
 def calculate_income(initial_capital, days, daily_rate_pct, bonus_pct, reinvest, fixed_daily_addition, apply_fee):
-    """
-    Beregner afkast med den korrekte rækkefølge og beregning for gebyr og bonus.
-    """
-    # Grundlæggende rater
     daily_rate = daily_rate_pct / 100
-    # Her konverteres bonusprocenten (f.eks. 10) til en rate (0.10)
     bonus_rate = bonus_pct / 100
-    
     total_earned_income = 0
     total_fixed_additions = 0
     total_fees = 0
     total_bonuses = 0
     current_capital = initial_capital
     reinvestment_pool = 0
-
     daily_results = []
-
     for day in range(1, days + 1):
-        # 1. Beregn det "rå" daglige afkast (uden bonus)
         base_daily_income = current_capital * daily_rate
-        
-        # 2. Beregn gebyr ud fra rå-afkastet (hvis valgt)
-        fee_amount = 0
-        if apply_fee:
-            fee_amount = base_daily_income * 0.05
-        
-        # 3. Beregn bonus ud fra rå-afkastet
+        fee_amount = base_daily_income * 0.05 if apply_fee else 0
         bonus_amount = base_daily_income * bonus_rate
-        
-        # 4. Beregn dagens endelige netto-afkast
         daily_earned_income_net = base_daily_income - fee_amount + bonus_amount
-        
-        # Opdater totaler for hele perioden
         total_earned_income += daily_earned_income_net
         total_fees += fee_amount
         total_bonuses += bonus_amount
         total_fixed_additions += fixed_daily_addition
-        
-        # Læg netto-afkast og det faste tillæg sammen
         total_added_to_pool = daily_earned_income_net + fixed_daily_addition
-        
-        # Håndter geninvesteringspuljen
         if reinvest:
             reinvestment_pool += total_added_to_pool
             if reinvestment_pool >= 50:
                 num_reinvestments = int(reinvestment_pool / 50)
                 reinvest_amount = num_reinvestments * 50
-                
                 current_capital += reinvest_amount
                 reinvestment_pool -= reinvest_amount
-        
         daily_results.append({
-            "Dag": day,
-            "Rå-afkast ($)": base_daily_income,
-            "Gebyr (5%) ($)": fee_amount,
-            "Bonus ($)": bonus_amount,
-            "Netto Afkast ($)": daily_earned_income_net,
-            "Fast Tillæg ($)": fixed_daily_addition,
-            "Total til Pulje ($)": total_added_to_pool,
-            "Reinvest Pulje ($)": reinvestment_pool,
-            "Kapital ved Dagens Slut ($)": current_capital
+            "day": day, "raw_income": base_daily_income, "fee": fee_amount, "bonus": bonus_amount,
+            "net_income": daily_earned_income_net, "fixed_add": fixed_daily_addition,
+            "total_pool": total_added_to_pool, "reinvest_pool": reinvest_pool,
+            "final_capital": current_capital
         })
-
     return total_earned_income, total_fixed_additions, total_fees, total_bonuses, current_capital, daily_results
 
+# ==============================================================================
+# 2. HÅNDTERING AF SPROGVALG
+# ==============================================================================
+# Sæt et standardsprog, hvis intet er valgt
+if 'lang' not in st.session_state:
+    st.session_state.lang = 'da'
 
-# --- Streamlit Brugerflade ---
-st.title("Avanceret Investeringsberegner")
+# Definer tilgængelige sprog til dropdown
+lang_options = {'Dansk': 'da', 'English': 'en'}
+
+# Sprogvælger (med en label der kan forstås på begge sprog)
+selected_lang_name = st.sidebar.selectbox(
+    label="Vælg sprog / Select language",
+    options=lang_options.keys(),
+    # Find index for det nuværende sprog for at vise det korrekt
+    index=list(lang_options.values()).index(st.session_state.lang)
+)
+# Opdater sproget i session state, når brugeren vælger
+st.session_state.lang = lang_options[selected_lang_name]
+
+# Hent den korrekte ordbog baseret på valgt sprog
+texts = translations[st.session_state.lang]
+
+# ==============================================================================
+# 3. BRUGERFLADE (bruger nu 'texts'-ordbogen)
+# ==============================================================================
+st.title(texts['title'])
 
 # Input-felter
-st.sidebar.header("Indtast dine værdier")
-initial_capital = st.sidebar.number_input("Startkapital ($)", min_value=0.0, value=1000.0, step=100.0)
-days = st.sidebar.number_input("Antal dage (d)", min_value=1, value=30, step=1)
-daily_rate_pct = st.sidebar.number_input("Gennemsnitlig daglig indkomst (%)", min_value=0.0, value=1.5, step=0.1)
-fixed_daily_addition = st.sidebar.number_input("Dagligt fast tillæg ($)", min_value=0.0, value=0.0, step=10.0, help="Et fast beløb, der lægges i geninvesteringspuljen hver dag.")
+st.sidebar.header(texts['sidebar_header'])
+initial_capital = st.sidebar.number_input(texts['initial_capital'], min_value=0.0, value=1000.0, step=100.0)
+days = st.sidebar.number_input(texts['days'], min_value=1, value=30, step=1)
+daily_rate_pct = st.sidebar.number_input(texts['daily_rate_pct'], min_value=0.0, value=1.5, step=0.1)
+fixed_daily_addition = st.sidebar.number_input(
+    texts['fixed_daily_addition'], min_value=0.0, value=0.0, step=10.0, help=texts['fixed_daily_addition_help']
+)
 
 # Indstillinger
 st.sidebar.markdown("---")
 bonus_options = {"S0 (0%)": 0, "S1 (10%)": 10, "S2 (15%)": 15, "S3 (25%)": 25, "S4 (35%)": 35}
-bonus_choice = st.sidebar.radio("Bonus Level", list(bonus_options.keys()))
+bonus_choice = st.sidebar.radio(texts['bonus_level'], list(bonus_options.keys()))
 bonus_pct = bonus_options[bonus_choice]
-custom_bonus = st.sidebar.number_input("Eller indtast brugerdefineret bonus (%)", min_value=0.0, value=0.0, step=1.0)
+custom_bonus = st.sidebar.number_input(texts['custom_bonus'], min_value=0.0, value=0.0, step=1.0)
 if custom_bonus > 0:
     bonus_pct = custom_bonus
 
 # Checkbokse
-reinvest = st.sidebar.checkbox("Geninvestering aktiv?", value=True)
-apply_fee = st.sidebar.checkbox("Fratræk 5% gebyr (før bonus)", value=False)
+reinvest = st.sidebar.checkbox(texts['reinvest_active'], value=True)
+apply_fee = st.sidebar.checkbox(texts['apply_fee'], value=False)
 
 # Beregningsknap
-if st.button("Beregn"):
-    # --------------------------------------------------------------------
-    # RETTET HER: '/ 100' er fjernet, så vi sender den rene procent (f.eks. 10)
-    # --------------------------------------------------------------------
+if st.button(texts['calculate_button']):
     total_earned_income, total_fixed_additions, total_fees, total_bonuses, final_capital, daily_results = calculate_income(
         initial_capital, days, daily_rate_pct, bonus_pct, reinvest, fixed_daily_addition, apply_fee
     )
     
-    st.header("Resultat Oversigt")
+    st.header(texts['results_header'])
     
     col1, col2 = st.columns(2)
-    col1.metric("Samlet Netto Afkast", f"${total_earned_income:,.2f}", help="Den totale profit efter gebyrer og bonusser er medregnet.")
-    col2.metric("Endelig Kapital", f"${final_capital:,.2f}", help="Din startkapital plus alle geninvesteringer.")
+    col1.metric(texts['total_net_income'], f"${total_earned_income:,.2f}", help=texts['total_net_income_help'])
+    col2.metric(texts['final_capital'], f"${final_capital:,.2f}", help=texts['final_capital_help'])
 
     col1, col2, col3 = st.columns(3)
-    col1.metric("Samlede Faste Tillæg", f"${total_fixed_additions:,.2f}", help="Den totale mængde penge du selv har tilføjet.")
-    col2.metric("Samlet Bonus", f"${total_bonuses:,.2f}", help="Den samlede værdi af din bonus.")
-    col3.metric("Samlet Gebyr (5%)", f"${total_fees:,.2f}", help="Det samlede beløb fratrukket i gebyr.")
+    col1.metric(texts['total_fixed_additions'], f"${total_fixed_additions:,.2f}", help=texts['total_fixed_additions_help'])
+    col2.metric(texts['total_bonus'], f"${total_bonuses:,.2f}", help=texts['total_bonus_help'])
+    col3.metric(texts['total_fee'], f"${total_fees:,.2f}", help=texts['total_fee_help'])
     
     st.divider()
     
-    st.subheader("Detaljeret Daglig Oversigt")
+    st.subheader(texts['daily_results_header'])
     results_df = pd.DataFrame(daily_results)
     
-    column_order = [
-        "Dag", "Rå-afkast ($)", "Gebyr (5%) ($)", "Bonus ($)", "Netto Afkast ($)", 
-        "Fast Tillæg ($)", "Total til Pulje ($)", "Reinvest Pulje ($)", "Kapital ved Dagens Slut ($)"
-    ]
+    # Omdøb kolonner baseret på valgt sprog
+    results_df = results_df.rename(columns={
+        "day": texts['col_day'], "raw_income": texts['col_raw_income'], "fee": texts['col_fee'],
+        "bonus": texts['col_bonus'], "net_income": texts['col_net_income'], "fixed_add": texts['col_fixed_add'],
+        "total_pool": texts['col_total_pool'], "reinvest_pool": texts['col_reinvest_pool'],
+        "final_capital": texts['col_final_capital']
+    })
     
-    st.dataframe(results_df[column_order].style.format({
-        'Rå-afkast ($)': '{:,.2f}',
-        'Gebyr (5%) ($)': '{:,.2f}',
-        'Bonus ($)': '{:,.2f}',
-        'Netto Afkast ($)': '{:,.2f}',
-        'Fast Tillæg ($)': '{:,.2f}',
-        'Total til Pulje ($)': '{:,.2f}',
-        'Reinvest Pulje ($)': '{:,.2f}',
-        'Kapital ved Dagens Slut ($)': '{:,.2f}'
+    st.dataframe(results_df.style.format({
+        texts['col_raw_income']: '{:,.2f}', texts['col_fee']: '{:,.2f}', texts['col_bonus']: '{:,.2f}',
+        texts['col_net_income']: '{:,.2f}', texts['col_fixed_add']: '{:,.2f}', texts['col_total_pool']: '{:,.2f}',
+        texts['col_reinvest_pool']: '{:,.2f}', texts['col_final_capital']: '{:,.2f}'
     }), use_container_width=True)
