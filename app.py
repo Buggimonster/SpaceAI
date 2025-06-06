@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
-# Brugerdefineret CSS for baggrund, tekst og knapper
+# Brugerdefineret CSS (Download-knap styling er nu fjernet)
 st.markdown("""
     <style>
     /* Sætter gradient-baggrunden for hovedvinduet */
@@ -37,17 +37,14 @@ st.markdown("""
         color: black !important;
     }
 
-    /* SIMPEL REGEL: Gør kun teksten på download-knappen sort */
-    div[data-testid="stDownloadButton"] a {
-        color: black !important;
-    }
+    /* Den problematiske CSS for download-knappen er nu fjernet */
 
     </style>
     """, unsafe_allow_html=True)
 
 
 # ==============================================================================
-# 1. ORDBOG FOR OVERSÆTTELSER
+# 1. ORDBOG FOR OVERSÆTTELSER (med ny tekst til knappen)
 # ==============================================================================
 translations = {
     'da': {
@@ -66,7 +63,9 @@ translations = {
         "col_net_income": "Netto Afkast ($)", "col_fixed_add": "Fast Tillæg ($)", "col_total_pool": "Total til Pulje ($)",
         "col_reinvest_pool": "Reinvest Pulje ($)", "col_final_capital": "Kapital v/Dagens Slut ($)",
         "graph_header": "Kapital Vækst Over Tid", "expander_label": "Vis/skjul detaljeret dag-for-dag oversigt",
-        "download_button_label": "Download resultater som Excel (.xlsx)", "reset_button_label": "Nulstil Indtastning"
+        "download_button_label": "Download resultater som Excel (.xlsx)",
+        "download_button_short_label": "Download", # NYT
+        "reset_button_label": "Nulstil Indtastning"
     },
     'en': {
         "lang_selector_label": "Select language", "title": "Advanced Investment Calculator", "sidebar_header": "Enter your values",
@@ -84,7 +83,9 @@ translations = {
         "col_net_income": "Net Return ($)", "col_fixed_add": "Fixed Add. ($)", "col_total_pool": "Total to Pool ($)",
         "col_reinvest_pool": "Reinvest Pool ($)", "col_final_capital": "Capital at Day End ($)",
         "graph_header": "Capital Growth Over Time", "expander_label": "Show/hide detailed day-by-day overview",
-        "download_button_label": "Download results as Excel (.xlsx)", "reset_button_label": "Reset Inputs"
+        "download_button_label": "Download results as Excel (.xlsx)",
+        "download_button_short_label": "Download", # NEW
+        "reset_button_label": "Reset Inputs"
     }
 }
 
@@ -159,7 +160,7 @@ apply_fee = st.sidebar.checkbox(texts['apply_fee'], value=True)
 if st.sidebar.button(texts['reset_button_label']):
     st.rerun()
 
-# --- BEREGNING OG RESULTATER (uændret) ---
+# --- BEREGNING OG RESULTATER ---
 if st.button(texts['calculate_button']):
     total_earned_income, total_fixed_additions, total_fees, total_bonuses, final_capital, daily_results = calculate_income(
         initial_capital, days, daily_rate_pct, bonus_pct, reinvest, fixed_daily_addition, apply_fee)
@@ -183,7 +184,20 @@ if st.button(texts['calculate_button']):
     st.line_chart(chart_data['final_capital'])
 
     excel_data = to_excel(results_df_renamed)
-    st.download_button(label=texts['download_button_label'], data=excel_data, file_name='investment_results.xlsx', mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    
+    st.divider()
+
+    # OPDATERET: Download-knap og label er nu adskilt og placeret i kolonner
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.write(texts['download_button_label']) # Den lange beskrivelse
+    with col2:
+        st.download_button(
+            label=texts['download_button_short_label'], # Den korte tekst på selve knappen
+            data=excel_data,
+            file_name='investment_results.xlsx',
+            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
 
     st.divider()
     
