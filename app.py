@@ -1,6 +1,34 @@
 import streamlit as st
 import pandas as pd
 
+# NYT: Brugerdefineret CSS for baggrund og tekstfarve
+# Denne blok indsættes i toppen for at style appen.
+st.markdown("""
+    <style>
+    /* Sætter gradient-baggrunden for hovedvinduet */
+    [data-testid="stAppViewContainer"] {
+        background: linear-gradient(to right, #0d1b2a, #415a77);
+    }
+
+    /* Gør headeren gennemsigtig, så baggrunden ses igennem */
+    [data-testid="stHeader"] {
+        background-color: rgba(0, 0, 0, 0);
+    }
+
+    /* Ændrer farven på alle overskrifter til hvid for læsbarhed */
+    h1, h2, h3, h4, h5, h6 {
+        color: white;
+    }
+    
+    /* Gør teksten på knappen hvid (valgfrit) */
+    .stButton>button {
+        color: white;
+    }
+
+    </style>
+    """, unsafe_allow_html=True)
+
+
 # ==============================================================================
 # 1. ORDBOG FOR OVERSÆTTELSER
 # ==============================================================================
@@ -148,8 +176,6 @@ st.session_state.lang = lang_options[selected_lang_name]
 texts = translations[st.session_state.lang]
 
 # --- HOVEDSIDE SETUP ---
-
-# NYT: Logo er flyttet fra sidebar til toppen af hovedsiden og centreret
 logo_url = "https://raw.githubusercontent.com/Buggimonster/SpaceAI/591366f7037c4b66479ce01fac236b4053d01c45/logo.png"
 col1, col2, col3 = st.columns([1,2,1])
 with col2:
