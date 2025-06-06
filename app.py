@@ -129,33 +129,37 @@ def calculate_income(initial_capital, days, daily_rate_pct, bonus_pct, reinvest,
     return total_earned_income, total_fixed_additions, total_fees, total_bonuses, current_capital, daily_results
 
 # ==============================================================================
-# HÅNDTERING AF SPROGVALG
+# SPROG OG UI SETUP
 # ==============================================================================
+
+# Sæt et standardsprog, hvis intet er valgt i sessionen
 if 'lang' not in st.session_state:
     st.session_state.lang = 'da'
 
+# Definer sprog til dropdown-menuen
 lang_options = {'Dansk': 'da', 'English': 'en'}
 
-# ==============================================================================
-# BRUGERFLADE
-# ==============================================================================
-st.title(texts['title'])
+# --- RÆKKEFØLGEN ER RETTET HER ---
 
-# --- SIDEBAR STARTER HER ---
-
-# Logo indsat med det korrekte, rå link fra GitHub
-logo_url = "https://raw.githubusercontent.com/Buggimonster/SpaceAI/591366f7037c4b66479ce01fac236b4053d01c45/logo.png"
-st.sidebar.image(logo_url)
-
+# 1. Opret sprogvælgeren FØRST, så vi ved hvilket sprog der skal bruges
 selected_lang_name = st.sidebar.selectbox(
     label="Vælg sprog / Select language",
     options=lang_options.keys(),
     index=list(lang_options.values()).index(st.session_state.lang)
 )
-# Opdater session state og hent den korrekte ordbog
+
+# 2. Opdater sproget i session state og hent den korrekte ordbog
 st.session_state.lang = lang_options[selected_lang_name]
 texts = translations[st.session_state.lang]
 
+# 3. Nu kan vi bygge resten af UI'en med de korrekte tekster
+st.title(texts['title'])
+
+# Indsæt logo
+logo_url = "https://raw.githubusercontent.com/Buggimonster/SpaceAI/591366f7037c4b66479ce01fac236b4053d01c45/logo.png"
+st.sidebar.image(logo_url)
+
+# Fortsæt med resten af sidebaren
 st.sidebar.header(texts['sidebar_header'])
 initial_capital = st.sidebar.number_input(texts['initial_capital'], min_value=0.0, value=1000.0, step=100.0)
 days = st.sidebar.number_input(texts['days'], min_value=1, value=30, step=1)
