@@ -3,26 +3,23 @@ import pandas as pd
 
 def calculate_income(initial_capital, days, daily_rate_pct, bonus_pct, reinvest, fixed_daily_addition, apply_fee):
     """
-    Beregner afkast med ny specifik rækkefølge for gebyr og bonus.
+    Beregner afkast med den korrekte rækkefølge og beregning for gebyr og bonus.
     """
     # Grundlæggende rater
     daily_rate = daily_rate_pct / 100
+    # Her konverteres bonusprocenten (f.eks. 10) til en rate (0.10)
     bonus_rate = bonus_pct / 100
     
     total_earned_income = 0
     total_fixed_additions = 0
     total_fees = 0
-    total_bonuses = 0 # Ny variabel for at spore den samlede bonus
+    total_bonuses = 0
     current_capital = initial_capital
     reinvestment_pool = 0
 
     daily_results = []
 
     for day in range(1, days + 1):
-        # --------------------------------------------------------------------
-        # NY BEREGNINGSLOGIK implementeret her
-        # --------------------------------------------------------------------
-        
         # 1. Beregn det "rå" daglige afkast (uden bonus)
         base_daily_income = current_capital * daily_rate
         
@@ -35,9 +32,7 @@ def calculate_income(initial_capital, days, daily_rate_pct, bonus_pct, reinvest,
         bonus_amount = base_daily_income * bonus_rate
         
         # 4. Beregn dagens endelige netto-afkast
-        # Netto = (Rå-afkast) - (Gebyr) + (Bonus)
         daily_earned_income_net = base_daily_income - fee_amount + bonus_amount
-        # --------------------------------------------------------------------
         
         # Opdater totaler for hele perioden
         total_earned_income += daily_earned_income_net
@@ -73,7 +68,7 @@ def calculate_income(initial_capital, days, daily_rate_pct, bonus_pct, reinvest,
     return total_earned_income, total_fixed_additions, total_fees, total_bonuses, current_capital, daily_results
 
 
-# --- Streamlit Brugerflade (Stort set uændret) ---
+# --- Streamlit Brugerflade ---
 st.title("Avanceret Investeringsberegner")
 
 # Input-felter
@@ -94,12 +89,15 @@ if custom_bonus > 0:
 
 # Checkbokse
 reinvest = st.sidebar.checkbox("Geninvestering aktiv?", value=True)
-apply_fee = st.sidebar.checkbox("Fratræk 5% gebyr (før bonus)", value=False) # Opdateret hjælpetekst
+apply_fee = st.sidebar.checkbox("Fratræk 5% gebyr (før bonus)", value=False)
 
 # Beregningsknap
 if st.button("Beregn"):
+    # --------------------------------------------------------------------
+    # RETTET HER: '/ 100' er fjernet, så vi sender den rene procent (f.eks. 10)
+    # --------------------------------------------------------------------
     total_earned_income, total_fixed_additions, total_fees, total_bonuses, final_capital, daily_results = calculate_income(
-        initial_capital, days, daily_rate_pct, bonus_pct / 100, reinvest, fixed_daily_addition, apply_fee
+        initial_capital, days, daily_rate_pct, bonus_pct, reinvest, fixed_daily_addition, apply_fee
     )
     
     st.header("Resultat Oversigt")
@@ -115,7 +113,7 @@ if st.button("Beregn"):
     
     st.divider()
     
-    st.subheader("Ekstremt Detaljeret Daglig Oversigt")
+    st.subheader("Detaljeret Daglig Oversigt")
     results_df = pd.DataFrame(daily_results)
     
     column_order = [
