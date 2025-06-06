@@ -45,7 +45,7 @@ st.markdown("""
 
 
 # ==============================================================================
-# 1. ORDBOG FOR OVERSÆTTELSER
+# 1. ORDBOG FOR OVERSÆTTELSER (MED OPDATEREDE TEKSTER)
 # ==============================================================================
 translations = {
     'da': {
@@ -56,12 +56,12 @@ translations = {
         "initial_capital": "Startkapital ($)",
         "days": "Antal dage (d)",
         "daily_rate_pct": "Gennemsnitlig daglig indkomst (%)",
-        "fixed_daily_addition": "Dagligt fast tillæg ($)",
-        "fixed_daily_addition_help": "Et fast beløb, der lægges i geninvesteringspuljen hver dag.",
-        "bonus_level": "Bonusniveau",
+        "fixed_daily_addition": "Gennemsnitligt dagligt Team afkast ($)",
+        "fixed_daily_addition_help": "Det gennemsnitlige afkast du forventer fra dit team hver dag.",
+        "bonus_level": "S Kaptajn bonus niveau",
         "custom_bonus": "Eller indtast brugerdefineret bonus (%)",
-        "reinvest_active": "Geninvestering aktiv?",
-        "apply_fee": "Fratræk 5% gebyr (før bonus)",
+        "reinvest_active": "Geinvester hver gang du har min. 50$",
+        "apply_fee": "Fratræk 5% platform gebyr",
         "calculate_button": "Beregn",
         # Resultater
         "results_header": "Resultat Oversigt",
@@ -95,12 +95,12 @@ translations = {
         "initial_capital": "Initial Capital ($)",
         "days": "Number of Days (d)",
         "daily_rate_pct": "Average Daily Income (%)",
-        "fixed_daily_addition": "Fixed Daily Addition ($)",
-        "fixed_daily_addition_help": "A fixed amount added to the reinvestment pool each day.",
-        "bonus_level": "Bonus Level",
+        "fixed_daily_addition": "Average daily Team return ($)",
+        "fixed_daily_addition_help": "The average return you expect from your team each day.",
+        "bonus_level": "S Captain bonus level",
         "custom_bonus": "Or enter custom bonus (%)",
-        "reinvest_active": "Reinvestment active?",
-        "apply_fee": "Deduct 5% fee (before bonus)",
+        "reinvest_active": "Reinvest every min. $50",
+        "apply_fee": "Deduct 5% platform fee",
         "calculate_button": "Calculate",
         # Results
         "results_header": "Result Summary",
@@ -175,11 +175,9 @@ def calculate_income(initial_capital, days, daily_rate_pct, bonus_pct, reinvest,
 # SPROG OG UI SETUP
 # ==============================================================================
 
-# Sæt et standardsprog, hvis intet er valgt i sessionen
 if 'lang' not in st.session_state:
     st.session_state.lang = 'da'
 
-# Definer sprog til dropdown-menuen
 lang_options = {'Dansk': 'da', 'English': 'en'}
 
 # --- SIDEBAR SETUP ---
@@ -189,7 +187,6 @@ selected_lang_name = st.sidebar.selectbox(
     index=list(lang_options.values()).index(st.session_state.lang)
 )
 
-# Opdater sproget i session state og hent den korrekte ordbog
 st.session_state.lang = lang_options[selected_lang_name]
 texts = translations[st.session_state.lang]
 
@@ -219,7 +216,8 @@ if custom_bonus > 0:
     bonus_pct = custom_bonus
 
 reinvest = st.sidebar.checkbox(texts['reinvest_active'], value=True)
-apply_fee = st.sidebar.checkbox(texts['apply_fee'], value=False)
+# Her er default-værdien ændret til True
+apply_fee = st.sidebar.checkbox(texts['apply_fee'], value=True)
 
 # --- BEREGNING OG RESULTATER (på hovedsiden) ---
 if st.button(texts['calculate_button']):
@@ -243,7 +241,6 @@ if st.button(texts['calculate_button']):
     st.subheader(texts['daily_results_header'])
     results_df = pd.DataFrame(daily_results)
     
-    # Omdøb kolonner baseret på valgt sprog
     results_df = results_df.rename(columns={
         "day": texts['col_day'], "raw_income": texts['col_raw_income'], "fee": texts['col_fee'],
         "bonus": texts['col_bonus'], "net_income": texts['col_net_income'], "fixed_add": texts['col_fixed_add'],
