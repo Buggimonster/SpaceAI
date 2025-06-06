@@ -146,10 +146,10 @@ c1, c2, c3 = st.columns([1,2,1]);
 with c2:
     st.image(logo_url)
     
-    # NYT: Credit-tekst indsat her, under logoet i den midterste kolonne
     credit_text = "Created by Buggi - Credit go to fisatecs OG design which lead to this enhanced version"
+    # OPDATERET: Font-størrelsen er fordoblet fra 0.85em til 1.7em
     st.markdown(
-        f'<p style="text-align: center; color: #FF4444; font-style: italic; font-size: 0.85em;">{credit_text}</p>',
+        f'<p style="text-align: center; color: #FF4444; font-style: italic; font-size: 1.7em;">{credit_text}</p>',
         unsafe_allow_html=True
     )
 
