@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
-# Brugerdefineret CSS (Download-knap styling er nu fjernet)
+# Brugerdefineret CSS for baggrund, tekst og knapper
 st.markdown("""
     <style>
     /* Sætter gradient-baggrunden for hovedvinduet */
@@ -37,14 +37,17 @@ st.markdown("""
         color: black !important;
     }
 
-    /* Den problematiske CSS for download-knappen er nu fjernet */
+    /* Simpel regel for at gøre teksten på download-knappen sort */
+    div[data-testid="stDownloadButton"] a {
+        color: black !important;
+    }
 
     </style>
     """, unsafe_allow_html=True)
 
 
 # ==============================================================================
-# 1. ORDBOG FOR OVERSÆTTELSER (med ny tekst til knappen)
+# 1. ORDBOG FOR OVERSÆTTELSER
 # ==============================================================================
 translations = {
     'da': {
@@ -64,7 +67,7 @@ translations = {
         "col_reinvest_pool": "Reinvest Pulje ($)", "col_final_capital": "Kapital v/Dagens Slut ($)",
         "graph_header": "Kapital Vækst Over Tid", "expander_label": "Vis/skjul detaljeret dag-for-dag oversigt",
         "download_button_label": "Download resultater som Excel (.xlsx)",
-        "download_button_short_label": "Download", # NYT
+        "download_button_short_label": "Download",
         "reset_button_label": "Nulstil Indtastning"
     },
     'en': {
@@ -84,7 +87,7 @@ translations = {
         "col_reinvest_pool": "Reinvest Pool ($)", "col_final_capital": "Capital at Day End ($)",
         "graph_header": "Capital Growth Over Time", "expander_label": "Show/hide detailed day-by-day overview",
         "download_button_label": "Download results as Excel (.xlsx)",
-        "download_button_short_label": "Download", # NEW
+        "download_button_short_label": "Download",
         "reset_button_label": "Reset Inputs"
     }
 }
@@ -187,13 +190,14 @@ if st.button(texts['calculate_button']):
     
     st.divider()
 
-    # OPDATERET: Download-knap og label er nu adskilt og placeret i kolonner
-    col1, col2 = st.columns([3, 1])
+    # OPDATERET: Download-knap og label er nu justeret
+    col1, col2 = st.columns([3, 1]) # Giver 3/4 af pladsen til teksten og 1/4 til knappen
     with col1:
-        st.write(texts['download_button_label']) # Den lange beskrivelse
+        # Teksten højre-justeres, så den rykker tæt på knappen
+        st.markdown(f"<p style='text-align: right; color: white; padding-top: 1em;'>{texts['download_button_label']}</p>", unsafe_allow_html=True)
     with col2:
         st.download_button(
-            label=texts['download_button_short_label'], # Den korte tekst på selve knappen
+            label=texts['download_button_short_label'],
             data=excel_data,
             file_name='investment_results.xlsx',
             mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
