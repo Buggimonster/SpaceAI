@@ -105,7 +105,7 @@ def calculate_income(initial_capital, days, daily_rate_pct, bonus_pct, reinvest,
         })
     return total_earned_income, total_fixed_additions, total_fees, total_bonuses, current_capital, daily_results
 
-# Funktion til at konvertere DataFrame til Excel i hukommelsen
+# Funktion til at konvertere DataFrame til Excel i hukommelsen (uændret)
 def to_excel(df):
     output = BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
@@ -114,7 +114,7 @@ def to_excel(df):
     return processed_data
 
 # ==============================================================================
-# SPROG OG UI SETUP
+# SPROG OG UI SETUP (uændret)
 # ==============================================================================
 if 'lang' not in st.session_state:
     st.session_state.lang = 'da'
@@ -146,11 +146,10 @@ if custom_bonus > 0: bonus_pct = custom_bonus
 reinvest = st.sidebar.checkbox(texts['reinvest_active'], value=True)
 apply_fee = st.sidebar.checkbox(texts['apply_fee'], value=True)
 
-# NYT: Nulstil-knap. Den genindlæser blot siden, hvilket rydder state.
 if st.sidebar.button(texts['reset_button_label']):
     st.rerun()
 
-# --- BEREGNING OG RESULTATER ---
+# --- BEREGNING OG RESULTATER (uændret) ---
 if st.button(texts['calculate_button']):
     total_earned_income, total_fixed_additions, total_fees, total_bonuses, final_capital, daily_results = calculate_income(
         initial_capital, days, daily_rate_pct, bonus_pct, reinvest, fixed_daily_addition, apply_fee)
@@ -169,18 +168,19 @@ if st.button(texts['calculate_button']):
     
     st.divider()
 
-    # NYT: Graf over kapitalvækst
     st.subheader(texts['graph_header'])
     chart_data = results_df.rename(columns={"day": "Day"}).set_index("Day")
     st.line_chart(chart_data['final_capital'])
 
-    # NYT: Download-knap til Excel
     excel_data = to_excel(results_df_renamed)
     st.download_button(label=texts['download_button_label'], data=excel_data, file_name='investment_results.xlsx', mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
     st.divider()
     
-    # NYT: Detaljeret oversigt er nu i en expander
     with st.expander(texts['expander_label']):
         st.subheader(texts['daily_results_header'])
-        st.dataframe(results_df_renamed.style.format(formatter="{:,.2f}", subset=pd.IndexSlice[:, results_df_renamed.columns[1:]])), use_container_width=True)
+        # HER ER DEN RETTEDE LINJE:
+        st.dataframe(
+            results_df_renamed.style.format(formatter="{:,.2f}", subset=pd.IndexSlice[:, results_df_renamed.columns[1:]]),
+            use_container_width=True
+        )
