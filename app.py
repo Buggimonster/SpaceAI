@@ -99,7 +99,7 @@ translations = {
         "fixed_daily_addition_help": "The average return you expect from your team each day.",
         "bonus_level": "S Captain bonus level",
         "custom_bonus": "Or enter custom bonus (%)",
-        "reinvest_active": "Reinvest every min. $50",
+        "reinvest_active": "Reinvest everytime you have min. $50",
         "apply_fee": "Deduct 5% platform fee",
         "calculate_button": "Calculate",
         # Results
