@@ -24,7 +24,6 @@ st.markdown("""
     }
     
     /* --- KNAP STYLING --- */
-    /* Styler den almindelige "Beregn"-knap */
     .stButton>button {
         border: 2px solid #C00;
         border-radius: 5px;
@@ -36,19 +35,23 @@ st.markdown("""
         background-color: #D00000;
         color: black !important;
     }
-    /* Simpel regel for at gøre teksten på download-knappen sort */
     div[data-testid="stDownloadButton"] a {
         color: black !important;
     }
     
-    /* NYT: Styling af sidebar-pil */
+    /* OPDATERET: Aggressiv styling af sidebar-pil */
     button[data-testid="stSidebarNavCollapseButton"] {
-        transform: scale(1.4); /* Gør knappen 40% større */
-        transform-origin: top left; /* Sikrer den skalerer fra hjørnet */
-        margin: 5px 0 0 10px; /* Justerer positionen lidt */
+        color: white !important;
+        transform: scale(1.4);
+        transform-origin: top left;
+        margin: 5px 0 0 10px;
     }
     button[data-testid="stSidebarNavCollapseButton"] svg {
-        fill: white !important; /* Tvinger pilens farve til at være hvid */
+        fill: white !important;
+    }
+    button[data-testid="stSidebarNavCollapseButton"] path {
+        stroke: white !important;
+        fill: white !important;
     }
 
     </style>
@@ -154,9 +157,11 @@ logo_url = "https://raw.githubusercontent.com/Buggimonster/SpaceAI/591366f7037c4
 c1, c2, c3 = st.columns([1,2,1]);
 with c2:
     st.image(logo_url)
+    
     credit_text = "Created by Buggi - Credit go to fisatecs OG design which lead to this enhanced version"
+    # OPDATERET: Font-størrelsen er justeret tilbage til 1.0em
     st.markdown(
-        f'<p style="text-align: center; color: #FF4444; font-style: italic; font-size: 1.7em;">{credit_text}</p>',
+        f'<p style="text-align: center; color: #FF4444; font-style: italic; font-size: 1.0em;">{credit_text}</p>',
         unsafe_allow_html=True
     )
 
