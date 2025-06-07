@@ -36,10 +36,19 @@ st.markdown("""
         background-color: #D00000;
         color: black !important;
     }
-
     /* Simpel regel for at gøre teksten på download-knappen sort */
     div[data-testid="stDownloadButton"] a {
         color: black !important;
+    }
+    
+    /* NYT: Styling af sidebar-pil */
+    button[data-testid="stSidebarNavCollapseButton"] {
+        transform: scale(1.4); /* Gør knappen 40% større */
+        transform-origin: top left; /* Sikrer den skalerer fra hjørnet */
+        margin: 5px 0 0 10px; /* Justerer positionen lidt */
+    }
+    button[data-testid="stSidebarNavCollapseButton"] svg {
+        fill: white !important; /* Tvinger pilens farve til at være hvid */
     }
 
     </style>
@@ -55,7 +64,7 @@ translations = {
         "initial_capital": "Startkapital ($)", "days": "Antal dage (d)", "daily_rate_pct": "Gennemsnitlig daglig indkomst (%)",
         "fixed_daily_addition": "Gennemsnitligt dagligt Team afkast ($)", "fixed_daily_addition_help": "Det gennemsnitlige afkast du forventer fra dit team hver dag.",
         "bonus_level": "S Kaptajn bonus niveau", "custom_bonus": "Eller indtast brugerdefineret bonus (%)",
-        "reinvest_active": "Geninvester afkast", "apply_fee": "Fratræk 5% platform gebyr",
+        "reinvest_active": "Geinvester hver gang du har min. 50$", "apply_fee": "Fratræk 5% platform gebyr",
         "calculate_button": "Beregn", "results_header": "Resultat Oversigt", "total_net_income": "Samlet Netto Afkast",
         "total_net_income_help": "Den totale profit efter gebyrer og bonusser er medregnet.", "final_capital": "Endelig Kapital",
         "final_capital_help": "Din startkapital plus alle geninvesteringer.", "total_fixed_additions": "Samlede Faste Tillæg",
@@ -76,7 +85,7 @@ translations = {
         "initial_capital": "Initial Capital ($)", "days": "Number of Days (d)", "daily_rate_pct": "Average Daily Income (%)",
         "fixed_daily_addition": "Average daily Team return ($)", "fixed_daily_addition_help": "The average return you expect from your team each day.",
         "bonus_level": "S Captain bonus level", "custom_bonus": "Or enter custom bonus (%)",
-        "reinvest_active": "Reinvest profit", "apply_fee": "Deduct 5% platform fee",
+        "reinvest_active": "Reinvest every min. $50", "apply_fee": "Deduct 5% platform fee",
         "calculate_button": "Calculate", "results_header": "Result Summary", "total_net_income": "Total Net Return",
         "total_net_income_help": "The total profit after all fees and bonuses are included.", "final_capital": "Final Capital",
         "final_capital_help": "Your initial capital plus all reinvestments.", "total_fixed_additions": "Total Fixed Additions",
@@ -145,11 +154,9 @@ logo_url = "https://raw.githubusercontent.com/Buggimonster/SpaceAI/591366f7037c4
 c1, c2, c3 = st.columns([1,2,1]);
 with c2:
     st.image(logo_url)
-    
-    # NYT: Credit-tekst indsat her, under logoet i den midterste kolonne
     credit_text = "Created by Buggi - Credit go to fisatecs OG design which lead to this enhanced version"
     st.markdown(
-        f'<p style="text-align: center; color: #FF4444; font-style: italic; font-size: 0.85em;">{credit_text}</p>',
+        f'<p style="text-align: center; color: #FF4444; font-style: italic; font-size: 1.7em;">{credit_text}</p>',
         unsafe_allow_html=True
     )
 
