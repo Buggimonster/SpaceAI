@@ -35,7 +35,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# Ordbog for tekster til sprogvalg
+# OPDATERET Ordbog for tekster til sprogvalg
 translations = {
     'da': {
         "title": "Daglig Profit Beregner",
@@ -44,13 +44,13 @@ translations = {
         "input_header": "Indtast dine værdier",
         "lang_select_label": "Sprog/Language",
         "reset_button_label": "Nulstil",
-        "input_A": "Today's revenue",
-        "input_B": "SAT Value (US$)",
+        "input_A": "Dagens omsætning",
+        "input_B": "SAT Værdi (US$)",
         "input_C": "Team Profit (SAT)",
-        "input_D": "Choose S Captain bonus",
+        "input_D": "Vælg S Kaptajn bonus",
         "output_F": "Team Profit (US$)",
-        "output_G": "Investment Profit (US$)",
-        "output_H": "Total profit of the day (US$)"
+        "output_G": "Investerings-profit (US$)",
+        "output_H": "Dagens totale profit (US$)"
     },
     'en': {
         "title": "Daily Profit Calculator",
@@ -81,10 +81,10 @@ lang_options = {'Dansk': 'da', 'English': 'en'}
 _, lang_col = st.columns([3, 1])
 with lang_col:
     selected_lang_name = st.selectbox(
-        label=translations['da']['lang_select_label'], # Label er bi-lingual
+        label=translations['da']['lang_select_label'], 
         options=lang_options.keys(),
         index=list(lang_options.values()).index(st.session_state.lang),
-        label_visibility="collapsed" # Skjuler label-teksten for et renere look
+        label_visibility="collapsed"
     )
     st.session_state.lang = lang_options[selected_lang_name]
 
