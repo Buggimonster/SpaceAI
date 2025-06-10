@@ -41,8 +41,8 @@ translations = {
         "title": "Daglig Profit Beregner",
         "calculate_button": "Beregn",
         "results_header": "Resultater",
-        "sidebar_header": "Indtast dine værdier",
-        "lang_select_label": "Vælg sprog",
+        "input_header": "Indtast dine værdier",
+        "lang_select_label": "Sprog/Language",
         "reset_button_label": "Nulstil",
         "input_A": "Today's revenue",
         "input_B": "SAT Value (US$)",
@@ -56,8 +56,8 @@ translations = {
         "title": "Daily Profit Calculator",
         "calculate_button": "Calculate",
         "results_header": "Results",
-        "sidebar_header": "Enter your values",
-        "lang_select_label": "Select language",
+        "input_header": "Enter your values",
+        "lang_select_label": "Language/Sprog",
         "reset_button_label": "Reset",
         "input_A": "Today's revenue",
         "input_B": "SAT Value (US$)",
@@ -77,16 +77,21 @@ if 'lang' not in st.session_state:
 
 lang_options = {'Dansk': 'da', 'English': 'en'}
 
-# --- SIDEBAR SETUP ---
-selected_lang_name = st.sidebar.selectbox(
-    label="Vælg sprog / Select language",
-    options=lang_options.keys(),
-    index=list(lang_options.values()).index(st.session_state.lang)
-)
-st.session_state.lang = lang_options[selected_lang_name]
+# Placer Sprogvælger øverst til højre
+_, lang_col = st.columns([3, 1])
+with lang_col:
+    selected_lang_name = st.selectbox(
+        label=translations['da']['lang_select_label'], # Label er bi-lingual
+        options=lang_options.keys(),
+        index=list(lang_options.values()).index(st.session_state.lang),
+        label_visibility="collapsed" # Skjuler label-teksten for et renere look
+    )
+    st.session_state.lang = lang_options[selected_lang_name]
+
+# Hent den korrekte ordbog baseret på valg
 texts = translations[st.session_state.lang]
 
-# --- HOVEDSIDE SETUP ---
+# --- HOVEDSIDE LAYOUT ---
 logo_url = "https://raw.githubusercontent.com/Buggimonster/SpaceAI/591366f7037c4b66479ce01fac236b4053d01c45/logo.png"
 c1, c2, c3 = st.columns([1,2,1])
 with c2:
@@ -95,77 +100,64 @@ st.title(texts['title'])
 st.markdown("---")
 
 
-# --- INPUT-FELTER I SIDEBAR ---
-st.sidebar.header(texts['sidebar_header'])
+# --- INPUT-FELTER PÅ HOVEDSIDEN ---
+st.header(texts['input_header'])
 
-# Input A2 - med 4 decimaler og default 0
-todays_revenue = st.sidebar.number_input(
-    label=texts['input_A'], value=0.0, step=100.0, format="%.4f"
-)
+# Opdel inputs i to kolonner for et pænere layout
+col1, col2 = st.columns(2)
 
-# Input B2 - med 4 decimaler og default 0
-sat_value = st.sidebar.number_input(
-    label=texts['input_B'], value=0.0, step=0.01, format="%.4f"
-)
+with col1:
+    todays_revenue = st.number_input(
+        label=texts['input_A'], value=0.0, step=100.0, format="%.4f"
+    )
+    sat_value = st.number_input(
+        label=texts['input_B'], value=0.0, step=0.01, format="%.4f"
+    )
 
-# Input C2 - med 4 decimaler og default 0
-team_profit_sat = st.sidebar.number_input(
-    label=texts['input_C'], value=0.0, step=100.0, format="%.4f"
-)
+with col2:
+    team_profit_sat = st.number_input(
+        label=texts['input_C'], value=0.0, step=100.0, format="%.4f"
+    )
+    bonus_options = [10, 15, 25, 35]
+    s_captain_bonus_pct = st.selectbox(
+        label=texts['input_D'],
+        options=bonus_options,
+        format_func=lambda x: f"{x}%" 
+    )
 
-# Input D2
-bonus_options = [10, 15, 25, 35]
-s_captain_bonus_pct = st.sidebar.selectbox(
-    label=texts['input_D'],
-    options=bonus_options,
-    format_func=lambda x: f"{x}%" 
-)
+st.markdown("---")
 
-st.sidebar.markdown("---")
+# --- KNAPPER TIL HANDLINGER ---
+btn_col1, btn_col2, _ = st.columns([1, 1, 2])
 
-# Nulstil-knap i sidebar
-if st.sidebar.button(texts['reset_button_label']):
-    st.rerun()
-
-
-# --- BEREGNING OG RESULTATER PÅ HOVEDSIDEN ---
-# Placer Beregn-knappen i midten
-_, col_button, _ = st.columns([1,1,1])
-with col_button:
+with btn_col1:
     calculate_clicked = st.button(texts['calculate_button'], use_container_width=True)
 
+with btn_col2:
+    if st.button(texts['reset_button_label'], use_container_width=True):
+        st.rerun()
 
+
+# --- BEREGNING OG RESULTATER ---
 if calculate_clicked:
-    # Konstanter og værdier fra input
-    platform_fee_pct = 0.05  # Fast 5%
+    platform_fee_pct = 0.05
     bonus_pct_decimal = s_captain_bonus_pct / 100
-    
-    # Formel F2 = B2 * C2
     team_profit_usd = sat_value * team_profit_sat
     
-    # Formel H2 = A2 - (((A2 - F2) / (1 + D2)) * E2)
     denominator = 1 + bonus_pct_decimal
     if denominator == 0:
         st.error("Bonus Procent kan ikke være -100%.")
     else:
         total_profit_of_the_day = todays_revenue - (((todays_revenue - team_profit_usd) / denominator) * platform_fee_pct)
-        
-        # Formel G2 = H2 - F2
         investment_profit_usd = total_profit_of_the_day - team_profit_usd
 
-        # Vis resultater
         st.markdown("---")
         st.header(texts['results_header'])
         
-        # Opret kolonner for et pænt layout
-        col1, col2, col3 = st.columns(3)
-        
-        # Vis outputs med 4 decimaler
-        with col1:
+        res_col1, res_col2, res_col3 = st.columns(3)
+        with res_col1:
             st.metric(label=texts['output_F'], value=f"${team_profit_usd:,.4f}")
-        
-        with col2:
+        with res_col2:
             st.metric(label=texts['output_G'], value=f"${investment_profit_usd:,.4f}")
-            
-        with col3:
+        with res_col3:
             st.metric(label=texts['output_H'], value=f"${total_profit_of_the_day:,.4f}")
