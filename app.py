@@ -35,7 +35,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# OPDATERET Ordbog for tekster til sprogvalg
+# Ordbog for tekster til sprogvalg
 translations = {
     'da': {
         "title": "Daglig Profit Beregner",
@@ -96,6 +96,13 @@ logo_url = "https://raw.githubusercontent.com/Buggimonster/SpaceAI/591366f7037c4
 c1, c2, c3 = st.columns([1,2,1])
 with c2:
     st.image(logo_url)
+    # NYT: Credit-tekst tilføjet med samme styling som den anden app
+    credit_text = "Created by Buggi"
+    st.markdown(
+        f'<p style="text-align: center; color: #FF4444; font-style: italic; font-size: 1.0em;">{credit_text}</p>',
+        unsafe_allow_html=True
+    )
+
 st.title(texts['title'])
 st.markdown("---")
 
