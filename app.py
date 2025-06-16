@@ -1,4 +1,6 @@
 import streamlit as st
+import pandas as pd
+from io import BytesIO
 
 # Brugerdefineret CSS for baggrund og styling
 st.markdown("""
@@ -44,7 +46,7 @@ translations = {
         "input_header": "Indtast dine værdier",
         "lang_select_label": "Sprog/Language",
         "reset_button_label": "Nulstil",
-        "guide_expander_label": "Klik her for at se vejledning til input-felter", # NYT
+        "guide_expander_label": "Klik her for at se vejledning til input-felter",
         "input_A": "Dagens omsætning",
         "input_B": "SAT Værdi (US$)",
         "input_C": "Team Profit (SAT)",
@@ -60,7 +62,7 @@ translations = {
         "input_header": "Enter your values",
         "lang_select_label": "Language/Sprog",
         "reset_button_label": "Reset",
-        "guide_expander_label": "Click here to see a guide for the input fields", # NEW
+        "guide_expander_label": "Click here for a guide to the input fields",
         "input_A": "Today's revenue",
         "input_B": "SAT Value (US$)",
         "input_C": "Team Profit (SAT)",
@@ -106,8 +108,9 @@ with c2:
 
 st.title(texts['title'])
 
-# NYT: Vejledning i en "expander" sektion
-image_url = "https://raw.githubusercontent.com/Buggimonster/SpaceAI/main/adv-calc.jpg"
+# Vejledning i en "expander" sektion
+# OPDATERET: URL'en peger nu på 'main2' branchen
+image_url = "https://raw.githubusercontent.com/Buggimonster/SpaceAI/main2/adv-calc.jpg"
 with st.expander(texts['guide_expander_label']):
     st.image(image_url)
 
