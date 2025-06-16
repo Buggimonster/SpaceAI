@@ -44,6 +44,7 @@ translations = {
         "input_header": "Indtast dine værdier",
         "lang_select_label": "Sprog/Language",
         "reset_button_label": "Nulstil",
+        "guide_expander_label": "Klik her for at se vejledning til input-felter", # NYT
         "input_A": "Dagens omsætning",
         "input_B": "SAT Værdi (US$)",
         "input_C": "Team Profit (SAT)",
@@ -59,6 +60,7 @@ translations = {
         "input_header": "Enter your values",
         "lang_select_label": "Language/Sprog",
         "reset_button_label": "Reset",
+        "guide_expander_label": "Click here to see a guide for the input fields", # NEW
         "input_A": "Today's revenue",
         "input_B": "SAT Value (US$)",
         "input_C": "Team Profit (SAT)",
@@ -96,7 +98,6 @@ logo_url = "https://raw.githubusercontent.com/Buggimonster/SpaceAI/591366f7037c4
 c1, c2, c3 = st.columns([1,2,1])
 with c2:
     st.image(logo_url)
-    # NYT: Credit-tekst tilføjet med samme styling som den anden app
     credit_text = "Created by Buggi"
     st.markdown(
         f'<p style="text-align: center; color: #FF4444; font-style: italic; font-size: 1.0em;">{credit_text}</p>',
@@ -104,6 +105,12 @@ with c2:
     )
 
 st.title(texts['title'])
+
+# NYT: Vejledning i en "expander" sektion
+image_url = "https://raw.githubusercontent.com/Buggimonster/SpaceAI/main/adv-calc.jpg"
+with st.expander(texts['guide_expander_label']):
+    st.image(image_url)
+
 st.markdown("---")
 
 
