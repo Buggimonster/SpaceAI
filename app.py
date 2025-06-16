@@ -109,8 +109,8 @@ with c2:
 st.title(texts['title'])
 
 # Vejledning i en "expander" sektion
-# OPDATERET: URL'en er nu den korrekte, permanente sti til billedet
-image_url = "https://raw.githubusercontent.com/Buggimonster/SpaceAI/b3553ac3396928e06363fdc56d90845129f67460/adv-calc.jpg"
+# OPDATERET: URL'en er nu den korrekte sti med ?raw=true
+image_url = "https://github.com/Buggimonster/SpaceAI/blob/b3553ac3396928e06363fdc56d90845129f67460/adv-calc.jpg?raw=true"
 with st.expander(texts['guide_expander_label']):
     st.image(image_url)
 
